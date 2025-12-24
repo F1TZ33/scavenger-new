@@ -1,298 +1,52 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>QR Scavenger Hunts</title>
-  <style>
-    :root {
-      --bg: #f4f6f8;
-      --card: #ffffff;
-      --accent: #2563eb;
-      --text: #111827;
-    }
-
-    /* Purple Theme */
-    .theme-purple {
-      --accent: #7c3aed;
-    }
-
-    /* Green Theme */
-    .theme-green {
-      --accent: #16a34a;
-    }
-
-    /* Orange Theme */
-    .theme-orange {
-      --accent: #f97316;
-    }
-
-    body {
-      margin: 0;
-      font-family: system-ui, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      padding: 20px;
-    }
-
-    .card {
-      max-width: 900px;
-      margin: auto;
-      padding: 20px;
-      background: var(--card);
-      border-radius: 12px;
-      border: 1px solid #ddd;
-    }
-
-    button {
-      padding: 12px 18px;
-      border-radius: 12px;
-      border: none;
-      background: var(--accent);
-      color: white;
-      font-size: 16px;
-      cursor: pointer;
-      margin: 4px;
-    }
-
-    button.secondary {
-      background: #6b7280;
-    }
-
-    button.danger {
-      background: #dc2626;
-    }
-
-    textarea, input, select {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 10px;
-      font-size: 16px;
-    }
-
-    .hunt {
-      background: var(--card);
-      padding: 14px;
-      border-radius: 12px;
-      margin-bottom: 14px;
-      border: 1px solid #ddd;
-    }
-
-    .admin {
-      border: 2px dashed #dc2626;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scavenger Hunt</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script>
 </head>
-
 <body>
+    <!-- Main Hunt Selection Page -->
+    <div id="index-screen">
+        <h1>Welcome to the Scavenger Hunt!</h1>
+        <button id="start-escape">Start Escape the House Hunt</button>
+        <button id="start-fortnite">Start Fortnite IRL Hunt</button>
+        <button id="start-hacker">Start Hacker Hunt</button>
 
-<div class="card" id="app">
-  <h1>QR Scavenger Hunts</h1>
-  <button onclick="createNewHunt()">➕ Create New Hunt</button>
+        <h2>Modify Hunts</h2>
+        <button id="modify-escape">Modify Escape the House Hunt</button>
+        <button id="modify-fortnite">Modify Fortnite IRL Hunt</button>
+        <button id="modify-hacker">Modify Hacker Hunt</button>
+    </div>
 
-  <div id="hunt-list"></div>
-</div>
+    <!-- Hunt Page (for users to do the scavenger hunt) -->
+    <div id="hunt-screen" style="display: none;">
+        <h2 id="clue"></h2>
+        <input type="text" id="user-input" placeholder="Enter your answer here">
+        <button id="submit-answer">Submit Answer</button>
+        <button id="camera-button">Scan QR Code</button> <!-- Camera access button -->
+        <p id="error-message" style="color: red;"></p>
 
-<script>
-  const HUNTS = {
-    escape: {
-      name: "Escape the House",
-      theme: "purple",
-      intro: "Welcome! Your escape challenge begins now 🏠",
-      clues: [
-        "I show your face but I'm not a photo.",
-        "I have pages but no homework.",
-        "I keep food safe and cold.",
-        "I go round and round but never get dizzy.",
-        "I have hands but no arms."
-      ],
-      finish: "🎉 Congratulations! You escaped the house!"
-    },
-    fortnite: {
-      name: "Fortnite IRL",
-      theme: "green",
-      intro: "Drop in! Your real-world Fortnite challenge starts now 🎮",
-      clues: [
-        "Controllers land here after a match.",
-        "Drinks restore shields here.",
-        "Shoes hide here after the storm.",
-        "Materials are stored with tools.",
-        "The squad gathers here."
-      ],
-      finish: "🏆 Victory Royale! You completed the hunt!"
-    },
-    hacker: {
-      name: "System Breach",
-      theme: "orange",
-      intro: "⚠️ Incoming transmission… system access required.",
-      clues: [
-        "Device that controls all others.",
-        "Passwords written but not digital.",
-        "Cold data storage.",
-        "Where commands are typed.",
-        "Single click changes everything."
-      ],
-      finish: "✅ SYSTEM BREACH COMPLETE — ACCESS GRANTED."
-    }
-  };
+        <!-- QR Code Scan area -->
+        <div id="qr-reader" style="width: 500px; height: 500px;"></div>
+    </div>
 
-  const userHunts = JSON.parse(localStorage.getItem("userHunts") || "{}");
-  let isAdmin = sessionStorage.getItem("admin") === "1";
+    <!-- Congratulations Page -->
+    <div id="congratulations-screen" style="display: none;">
+        <h2>Congratulations! You've completed the scavenger hunt!</h2>
+        <button onclick="goBack()">Back to Hunt Selection</button>
+    </div>
 
-  function toggleAdmin() {
-    isAdmin = !isAdmin;
-    if (isAdmin) {
-      sessionStorage.setItem("admin", "1");
-    } else {
-      sessionStorage.removeItem("admin");
-    }
-    home();
-  }
+    <!-- Modify Hunt Page -->
+    <div id="modify-screen" style="display: none;">
+        <h1>Modify Hunt</h1>
+        <div id="modify-clues"></div>
+        <button id="save-changes" onclick="saveChanges()">Save Changes</button>
+        <button onclick="goBack()">Back to Hunt Selection</button>
+    </div>
 
-  function home() {
-    document.body.className = "";
-    const huntListElement = document.getElementById("hunt-list");
-
-    huntListElement.innerHTML = Object.entries(HUNTS)
-      .sort((a, b) => a[1].name.localeCompare(b[1].name))
-      .map(([key, hunt]) => {
-        return `
-          <div class="hunt ${hunt.theme ? 'theme-' + hunt.theme : ''}">
-            <h3>${hunt.name}</h3>
-            <button onclick="generatePDF('${key}')">🖨 Generate QR PDF</button>
-            <button class="secondary" onclick="location='?view=${key}'">👁 View Hunt</button>
-            <button class="secondary" onclick="location='?play=${key}'">▶ Start Hunt</button>
-            ${isAdmin ? `<button class="secondary" onclick="location='?edit=${key}'">✏ Modify</button>` : ""}
-            ${isAdmin && !isDefaultHunt(key) ? `<button class="danger" onclick="deleteHunt('${key}')">🗑 Delete</button>` : ""}
-          </div>
-        `;
-      })
-      .join("");
-  }
-
-  function isDefaultHunt(key) {
-    return Object.prototype.hasOwnProperty.call(HUNTS, key);
-  }
-
-  function generatePDF(key) {
-    const hunt = HUNTS[key];
-    const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF();
-    const base = window.location.href.split('?')[0];
-
-    async function page(title, url) {
-      const c = document.createElement("canvas");
-      try {
-        await QRCode.toCanvas(c, url, { width: 300 });
-        const imgData = c.toDataURL();
-        pdf.addPage();
-        pdf.text(title, 10, 20);
-        pdf.addImage(imgData, "PNG", 30, 40, 150, 150);
-        pdf.text(url, 10, 230);
-      } catch (error) {
-        console.error("Error generating QR code:", error);
-      }
-    }
-
-    pdf.text(hunt.name, 10, 20);
-    pdf.text("Print and place these QR codes in order.", 10, 30);
-    await page("START QR", `${base}?play=${key}&s=0`);
-    await page("INTRO QR", `${base}?play=${key}&s=1`);
-
-    for (let i = 0; i < hunt.clues.length; i++) {
-      await page(`Clue ${i + 1} QR`, `${base}?play=${key}&s=${i + 2}`);
-    }
-
-    await page("FINISH QR", `${base}?play=${key}&s=${hunt.clues.length + 2}`);
-    pdf.save(`${hunt.name}.pdf`);
-  }
-
-  function createNewHunt() {
-    const hunt = {
-      name: "",
-      theme: "blue",
-      intro: "Happy Birthday! Your treasure hunt starts now 🎉",
-      clues: [""],
-      finish: "🎉 Congratulations! You completed the hunt!"
-    };
-
-    document.body.innerHTML = `
-      <div class="card">
-        <h2>Create New Hunt</h2>
-        <input id="name" placeholder="Hunt name" value="${hunt.name}">
-        <select id="theme">
-          ${["blue", "red", "green", "purple", "dark", "orange"].map(t => `
-            <option ${hunt.theme === t ? "selected" : ""}>${t}</option>`).join("")}
-        </select>
-        <textarea id="intro" placeholder="Custom intro message">${hunt.intro}</textarea>
-        <div id="clues"></div>
-        <button onclick="addClue()">➕ Add Clue</button>
-        <textarea id="finish" placeholder="Final congratulations message">${hunt.finish}</textarea>
-        <button onclick="saveHunt()">💾 Save</button>
-        <button class="secondary" onclick="home()">Cancel</button>
-      </div>
-    `;
-
-    hunt.clues.forEach(c => addClue(c));
-  }
-
-  function addClue(text = "") {
-    const clue = document.createElement("textarea");
-    clue.placeholder = "Clue text";
-    clue.value = text;
-    document.getElementById("clues").appendChild(clue);
-  }
-
-  function saveHunt() {
-    const name = document.getElementById("name").value.trim();
-    const intro = document.getElementById("intro").value.trim();
-    const finish = document.getElementById("finish").value.trim();
-    const theme = document.getElementById("theme").value;
-    const clues = [...document.querySelectorAll("#clues textarea")].map(t => t.value).filter(Boolean);
-    if (!name || !intro || !finish || !clues.length) return alert("All fields required");
-    const key = uid();
-    userHunts[key] = { name, theme, intro, clues, finish };
-    HUNTS[key] = userHunts[key];
-    save();
-    home();
-  }
-
-  function deleteHunt(key) {
-    if (!confirm(`Are you sure you want to delete the hunt "${HUNTS[key].name}"?`)) return;
-    delete userHunts[key];
-    delete HUNTS[key];
-    save();
-    home();
-  }
-
-  function viewHunt(key) {
-    const hunt = HUNTS[key];
-    if (!hunt) {
-      home();
-      return;
-    }
-
-    document.body.className = "theme-" + hunt.theme;
-
-    document.body.innerHTML = `
-      <div class="card">
-        <h2>${hunt.name}</h2>
-        <h3>🎁 Intro Message</h3>
-        <p>${hunt.intro}</p>
-        <h3>🧩 Clues</h3>
-        <ol>
-          ${hunt.clues.map(c => `<li>${c}</li>`).join('')}
-        </ol>
-        <h3>🎉 Finish Message</h3>
-        <p>${hunt.finish}</p>
-        <button class="secondary" onclick="home()">⬅ Back</button>
-      </div>
-    `;
-  }
-
-  // Initialize the home page
-  home();
-</script>
-
+    <script src="scripts.js"></script>
 </body>
 </html>

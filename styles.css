@@ -1,0 +1,94 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    text-align: center;
+    padding: 20px;
+    margin: 0;
+}
+
+.screen {
+    display: none;
+}
+
+#index-screen {
+    display: block;
+}
+
+.hunt-options {
+    margin-top: 20px;
+}
+
+.hunt-button {
+    padding: 20px 40px;
+    margin: 15px;
+    font-size: 1.5rem;
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    cursor: pointer;
+    width: 80%;  /* Make buttons wider for mobile screens */
+    max-width: 400px;  /* Max width for larger screens */
+    border-radius: 8px;
+}
+
+.hunt-button:hover {
+    background-color: #0056b3;
+}
+
+#hunt-screen {
+    margin-top: 20px;
+}
+
+input {
+    margin: 15px;
+    padding: 15px;
+    font-size: 1.2rem;
+    width: 80%;
+    max-width: 400px;
+    border-radius: 8px;
+}
+
+button {
+    padding: 15px 30px;
+    font-size: 1.2rem;
+    width: 80%;
+    max-width: 400px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.error {
+    color: red;
+    font-size: 1.2rem;
+}
+
+#congratulations-screen {
+    margin-top: 20px;
+    font-size: 1.5rem;
+}
+
+/* Mobile responsiveness */
+@media only screen and (max-width: 600px) {
+    body {
+        padding: 10px;
+    }
+
+    .hunt-button {
+        font-size: 1.4rem;
+        width: 90%;  /* Make buttons larger for small screens */
+    }
+
+    input, button {
+        font-size: 1.4rem;
+        width: 90%;
+    }
+
+    #congratulations-screen {
+        font-size: 1.6rem;
+    }
+
+    .hunt-options {
+        margin-top: 20px;
+    }
+}
+
