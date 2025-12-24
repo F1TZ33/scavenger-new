@@ -61,13 +61,15 @@ function showCongratulations() {
     document.getElementById('congratulations-screen').style.display = 'block';
 }
 
-// QR code scanning logic
+// QR code scanning logic with additional promise handling for mobile
 document.getElementById('camera-button').addEventListener('click', function() {
     const html5QrCode = new Html5Qrcode("qr-reader");
+
+    // Start the camera
     html5QrCode.start(
         { facingMode: "environment" }, // Use the back camera
         {
-            fps: 10,       // Frames per second
+            fps: 10,       // Frames per second (adjust based on your needs)
             qrbox: 250     // Size of the scanning box
         },
         (decodedText, decodedResult) => {
