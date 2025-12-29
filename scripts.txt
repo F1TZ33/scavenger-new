@@ -100,3 +100,4 @@ function goBack() {
     document.getElementById('modify-screen').style.display = 'none';
     document.getElementById('index-screen').style.display = 'block';
 }
+
